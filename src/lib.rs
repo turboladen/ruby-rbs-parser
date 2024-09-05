@@ -33,6 +33,10 @@ pub fn parse_method_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     crate::RbsParser::parse(Rule::method_member, source)
 }
 
+pub fn parse_alias_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    crate::RbsParser::parse(Rule::alias_member, source)
+}
+
 // NOTE: FYI: https://github.com/ruby/rbs/blob/master/test/rbs/parser_test.rb
 #[cfg(test)]
 mod tests {
@@ -141,5 +145,17 @@ mod tests {
 
         let text = "def self?.baz:()->A";
         let _ = parse_method_member(text).unwrap();
+    }
+
+    #[test]
+    fn alias_member_test() {
+        let text = "alias hello world";
+        let _ = parse_alias_member(text).unwrap();
+
+        let text = "alias self.hello self.world";
+        let _ = parse_alias_member(text).unwrap();
+
+        let text = "alias    self   .   hello    self   .   world";
+        let _ = parse_alias_member(text).unwrap();
     }
 }
