@@ -54,6 +54,5 @@ mod tests {
         let x = parse_class(text).unwrap();
 
         dbg!(x);
-        panic!("meow");
     }
 }
