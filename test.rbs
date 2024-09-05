@@ -1,0 +1,3 @@
+class App
+  VERSION: String
+end

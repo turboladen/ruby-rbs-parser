@@ -1,0 +1,164 @@
+WHITESPACE = _{ " " | "\n" | "\r" | "\t" }
+COMMENT = _{ "#" ~ (!"#" ~ ANY)* ~ NEWLINE }
+
+// ╭───────╮
+// │ Types │
+// ╰───────╯
+rtype = {
+  class_name ~ type_arguments? | "class"
+}
+
+namespace_op = { "::" }
+
+class_name = ${ namespace* ~ ASCII_ALPHA_UPPER ~ ASCII_ALPHANUMERIC* }
+interface_name = ${ namespace* ~ "_" ~ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
+// alias_name = {}
+
+type_variable = ${ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
+
+//
+// Spec allows for empty; use `namespace*` at use-site.
+// namespace = { namespace_op | namespace ~ ASCII_ALPHA_UPPER ~ ASCII_ALPHANUMERIC* ~ namespace_op }
+// namespace = { (ASCII_ALPHA_UPPER ~ ASCII_ALPHANUMERIC*)* ~ namespace_op | namespace_op }
+namespace = ${ "::" | UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC ~ "::" }
+
+// Spec allows for empty; use `type_arguments?` at use-site.
+type_arguments = { "[" ~ rtype ~ ("," ~ rtype)* ~ "]"}
+
+// ╭─────────────────────────────╮
+// │ Method Types and Proc Types │
+// ╰─────────────────────────────╯
+method_type = {
+  parameters? ~ block? ~ "->" ~ rtype
+  | "(" ~ "?" ~ ")" ~ "->" ~ rtype
+}
+  // Spec allows for empty; use `parameters?` at use-site.
+  parameters = {
+    "("
+      ~ required_positionals*
+      ~ optional_positionals*
+      ~ rest_positional?
+      ~ trailing_positionals?
+      // ~ keywords
+      ~ kwargs?
+    ~ ")"
+  }
+    parameter = { rtype ~ var_name | rtype }
+    required_positionals = { parameter ~ ("," ~ parameter)* }
+    optional_positionals = { "?" ~ parameter ~ ("," ~ "?" ~ parameter)* }
+    // Spec allows for empty; use `rest_positional?` at use-site.
+    rest_positional = { "*" ~ parameter }
+    trailing_positionals = { parameter ~ ("," ~ parameter)* }
+    // The spec calls these "keywords", but that's confusing.
+    //
+    // Also, it doesn't define what `keyword` is, but I believe that's the same
+    // as a `var_name`, so I'll use that.
+    //
+    // Spec allows for empty; use `kwargs?` at use-site.
+    kwargs = {
+      // Rest kwarg
+      "**" ~ parameter
+      // Required kwarg
+      | var_name ~ ":" ~ parameter ~ "," ~ kwargs
+      // Optional kwarg
+      | "?" ~ var_name ~ ":" ~ parameter ~ "," ~ kwargs
+    }
+    var_name = { LOWERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
+  // Spec allows for empty; use `self_type_binding?` at use-site.
+  self_type_binding = { "[" ~ "self" ~ ":" ~ rtype ~ "]" }
+  // Spec allows for empty; use `block?` at use-site.
+  block = {
+    "{" ~ parameters? ~ self_type_binding? ~ "->" ~ rtype ~ "}"
+  }
+
+// ╭─────────╮
+// │ Members │
+// ╰─────────╯
+member = {
+  ivar_member
+  | method_member
+  | attribute_member
+  | include_member
+  | extend_member
+  | prepend_member
+  | alias_member
+  | visibility_member
+}
+  ivar_member = {
+    ivar_name ~ ":" ~ rtype
+    | "self" ~ "." ~ ivar_name ~ ":" ~ rtype
+    | cvar_name ~ ":" ~ rtype
+  }
+  method_member = {
+    // instance method
+    visibility ~ "def" ~ method_name ~ ":" ~ method_types
+    // singleton method
+    | visibility ~ "def self." ~ method_name ~ ":" ~ method_types
+    // Singleton & instance method
+    | "def self?." ~ method_name ~ ":" ~ method_types
+  }
+    method_name = ${ LETTER ~ ASCII_ALPHANUMERIC* }
+    method_types = {
+      method_type_parameters? ~ method_type 
+     | method_type_parameters? ~ method_type ~ "|" ~ method_types
+    }
+    // Spec allows for empty; use `method_type_parameters?` at use-site.
+    method_type_parameters = { "[" ~ type_variable ~ ("," ~ type_variable)* ~ "]" }
+  attribute_member = {
+    // Attribute
+    visibility ~ attribute_type ~ method_name ~ ":" ~ rtype
+    // Attribute with variable name specification
+    | visibility ~ attribute_type ~ method_name ~ "(" ~ ivar_name ~ ")" ~ ":" ~ rtype
+    // Attribute without variable
+    | visibility ~ attribute_type ~ method_name ~ "(" ~ ")" ~ ":" ~ rtype
+  }
+    attribute_type = { "attr_reader" | "attr_writer" | "attr_accessor" }
+  include_member = {
+    "include" ~ class_name ~ type_arguments?
+    | "include" ~ interface_name ~ type_arguments?
+  }
+  extend_member = {
+    "extend" ~ class_name ~ type_arguments?
+    | "extend" ~ interface_name ~ type_arguments?
+  }
+  prepend_member = { "prepend" ~ class_name ~ type_arguments? }
+  alias_member = {
+    "alias" ~ method_name ~ method_name
+    | "alias" ~ "self" ~ "." ~ method_name ~ "self" ~ "." ~ "method_name"
+  }
+  visibility_member = { visibility }
+
+  visibility = { "public" | "private" }
+  ivar_name = ${ "@" ~ LETTER+ }
+  cvar_name = ${ "@@" ~ LETTER+ }
+
+// ╭──────────────╮
+// │ Declarations │
+// ╰──────────────╯
+decl = { class_decl }
+
+class_decl = {
+  "class" ~ class_name ~ module_type_parameters? ~ member* ~ "end"
+  | "class" ~ class_name ~ module_type_parameters? ~ "<" ~class_name ~ type_arguments ~ member* ~ "end"
+}
+
+// Spec allows for empty; use `module_type_parameters?` at use-site.
+module_type_parameters = { "[" ~ module_type_parameter ~ ("," ~ module_type_parameter)* ~ "]" }
+
+// ╭───────────╮
+// │ Generics  │
+// ╰───────────╯
+module_type_parameter = {
+  generics_unchecked? ~ generics_variance? ~ type_variable ~ generics_bound?
+}
+  // Spec allows for empty; use `generics_bound?` at use-site.
+  generics_bound = { "<" ~ bound_type }
+    bound_type = {
+      class_name ~ type_arguments?
+      | interface_name ~ type_arguments?
+      | "singleton" ~ "(" ~ class_name ~ ")"
+    }
+  // Spec allows for empty; use `generics_variance?` at use-site.
+  generics_variance = { "out" | "in" }
+  // Spec allows for empty; use `generics_unchecked?` at use-site.
+  generics_unchecked = { "unchecked" }
