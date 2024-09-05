@@ -29,6 +29,10 @@ pub fn parse_const_decl(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     crate::RbsParser::parse(Rule::const_decl, source)
 }
 
+pub fn parse_method_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    crate::RbsParser::parse(Rule::method_member, source)
+}
+
 // NOTE: FYI: https://github.com/ruby/rbs/blob/master/test/rbs/parser_test.rb
 #[cfg(test)]
 mod tests {
@@ -107,5 +111,35 @@ mod tests {
 
         let text = "Person::DefaultEmailAddress: String";
         let _ = parse_const_decl(text).unwrap();
+    }
+
+    #[test]
+    fn method_member_test() {
+        let text = "def foo: () -> A";
+        let _ = parse_method_member(text).unwrap();
+
+        let text = "def     foo    : ()     ->     A";
+        let _ = parse_method_member(text).unwrap();
+
+        let text = "def self.bar: () -> A";
+        let _ = parse_method_member(text).unwrap();
+
+        let text = "def      self.   bar: () -> A";
+        let _ = parse_method_member(text).unwrap();
+
+        let text = "def      self   .bar   : () -> A";
+        let _ = parse_method_member(text).unwrap();
+
+        let text = "def      self .: () -> A";
+        assert!(parse_method_member(text).is_err());
+
+        let text = "def self?.baz: () -> A";
+        let _ = parse_method_member(text).unwrap();
+
+        let text = "def self ? . baz :()->A";
+        let _ = parse_method_member(text).unwrap();
+
+        let text = "def self?.baz:()->A";
+        let _ = parse_method_member(text).unwrap();
     }
 }

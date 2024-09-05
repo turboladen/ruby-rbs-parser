@@ -87,14 +87,10 @@ member = {
     | "self" ~ "." ~ ivar_name ~ ":" ~ rtype
     | cvar_name ~ ":" ~ rtype
   }
-  method_member = {
-    // instance method
-    visibility ~ "def" ~ method_name ~ ":" ~ method_types
-    // singleton method
-    | visibility ~ "def self." ~ method_name ~ ":" ~ method_types
-    // Singleton & instance method
-    | "def self?." ~ method_name ~ ":" ~ method_types
-  }
+  method_member = { instance_method | singleton_method | singleton_and_instance_method }
+    instance_method = { visibility? ~ "def" ~ method_name ~ ":" ~ method_types }
+    singleton_method = { visibility? ~ "def" ~ "self" ~ "." ~ method_name ~ ":" ~ method_types }
+    singleton_and_instance_method = { visibility? ~ "def" ~ "self" ~ "?" ~ "." ~ method_name ~ ":" ~ method_types }
     method_name = ${ CASED_LETTER ~ ASCII_ALPHANUMERIC* }
     method_types = {
       method_type_parameters? ~ method_type 
