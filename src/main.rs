@@ -7,6 +7,6 @@ fn main() {
     let output = RbsParser::parse(Rule::rtype, &src);
     println!("{:#?}", output);
 
-    let output = ruby_rbs_parser::parse_class(&src);
+    let output = ruby_rbs_parser::parse_class_decl(&src);
     println!("{:#?}", output);
 }
