@@ -1,4 +1,4 @@
-WHITESPACE = _{ " " | "\n" | "\r" | "\t" }
+WHITESPACE = _{ " " | NEWLINE | "\t" }
 COMMENT = _{ "#" ~ (!"#" ~ ANY)* ~ NEWLINE }
 
 // ╭───────╮
@@ -8,9 +8,7 @@ rtype = {
   class_name ~ type_arguments? | "class"
 }
 
-namespace_op = { "::" }
-
-module_name_inner = _{ namespace* ~ ASCII_ALPHA_UPPER ~ ASCII_ALPHANUMERIC* }
+module_name_inner = _{ namespace* ~ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
 class_name = ${ module_name_inner }
 module_name = ${ module_name_inner }
 interface_name = ${ namespace* ~ "_" ~ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
@@ -18,11 +16,9 @@ interface_name = ${ namespace* ~ "_" ~ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
 
 type_variable = ${ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
 
-//
 // Spec allows for empty; use `namespace*` at use-site.
-// namespace = { namespace_op | namespace ~ ASCII_ALPHA_UPPER ~ ASCII_ALPHANUMERIC* ~ namespace_op }
-// namespace = { (ASCII_ALPHA_UPPER ~ ASCII_ALPHANUMERIC*)* ~ namespace_op | namespace_op }
-namespace = ${ "::" | UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC ~ "::" }
+namespace = ${ "::" |  (namespace_name ~ "::")+ }
+  namespace_name = ${ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
 
 // Spec allows for empty; use `type_arguments?` at use-site.
 type_arguments = { "[" ~ rtype ~ ("," ~ rtype)* ~ "]" }
@@ -99,7 +95,7 @@ member = {
     // Singleton & instance method
     | "def self?." ~ method_name ~ ":" ~ method_types
   }
-    method_name = ${ LETTER ~ ASCII_ALPHANUMERIC* }
+    method_name = ${ CASED_LETTER ~ ASCII_ALPHANUMERIC* }
     method_types = {
       method_type_parameters? ~ method_type 
      | method_type_parameters? ~ method_type ~ "|" ~ method_types
@@ -131,31 +127,41 @@ member = {
   visibility_member = { visibility }
 
   visibility = { "public" | "private" }
-  ivar_name = ${ "@" ~ LETTER+ }
-  cvar_name = ${ "@@" ~ LETTER+ }
+  ivar_name = ${ "@" ~ CASED_LETTER+ }
+  cvar_name = ${ "@@" ~ CASED_LETTER+ }
 
 // ╭──────────────╮
 // │ Declarations │
 // ╰──────────────╯
-decl = { class_decl }
-
-class_decl = {
-  "class" ~ class_name ~ module_type_parameters? ~ member* ~ "end"
-  | "class" ~ class_name ~ module_type_parameters? ~ "<" ~class_name ~ type_arguments ~ member* ~ "end"
+decl = {
+  class_decl
+  | module_decl
+  // | class_alias_decl
+  // | module_alias_decl
+  // | interface_decl
+  // | type_alias_decl
+  | const_decl
+  // | global_decl
 }
-module_decl = {
-  "module" ~ module_name ~ module_type_parameters? ~ member* ~ "end"
-  | "module" ~ module_name ~ module_type_parameters? ~ ":" ~ module_self_types ~ member* ~ "end"
-}
-  module_self_types = {
-    // Class instance
-    class_name ~ type_arguments? ~ ("," ~ module_self_types)*
-    // Interface
-    | interface_name ~ type_arguments? ~ ("," ~ module_self_types)*
+  class_decl = {
+    "class" ~ class_name ~ module_type_parameters? ~ member* ~ "end"
+    | "class" ~ class_name ~ module_type_parameters? ~ "<" ~class_name ~ type_arguments ~ member* ~ "end"
   }
-
-// Spec allows for empty; use `module_type_parameters?` at use-site.
-module_type_parameters = { "[" ~ module_type_parameter ~ ("," ~ module_type_parameter)* ~ "]" }
+  module_decl = {
+    "module" ~ module_name ~ module_type_parameters? ~ member* ~ "end"
+    | "module" ~ module_name ~ module_type_parameters? ~ ":" ~ module_self_types ~ member* ~ "end"
+  }
+    module_self_types = {
+      // Class instance
+      class_name ~ type_arguments? ~ ("," ~ module_self_types)*
+      // Interface
+      | interface_name ~ type_arguments? ~ ("," ~ module_self_types)*
+    }
+  const_decl = { const_name ~ ":" ~ rtype }
+    const_name = { const_name_inner+ }
+      const_name_inner = _{ namespace? ~ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
+  // Spec allows for empty; use `module_type_parameters?` at use-site.
+  module_type_parameters = { "[" ~ module_type_parameter ~ ("," ~ module_type_parameter)* ~ "]" }
 
 // ╭───────────╮
 // │ Generics  │

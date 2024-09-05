@@ -25,6 +25,10 @@ pub fn parse_module_decl(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     crate::RbsParser::parse(Rule::module_decl, source)
 }
 
+pub fn parse_const_decl(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    crate::RbsParser::parse(Rule::const_decl, source)
+}
+
 // NOTE: FYI: https://github.com/ruby/rbs/blob/master/test/rbs/parser_test.rb
 #[cfg(test)]
 mod tests {
@@ -94,5 +98,14 @@ mod tests {
 
         let text = "module Foo[T] : String, _Array[Symbol]\nend";
         let _ = parse_module_decl(text).unwrap();
+    }
+
+    #[test]
+    fn const_decl_test() {
+        let text = "Person: String";
+        let _ = parse_const_decl(text).unwrap();
+
+        let text = "Person::DefaultEmailAddress: String";
+        let _ = parse_const_decl(text).unwrap();
     }
 }
