@@ -41,6 +41,10 @@ pub fn parse_attribute_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> 
     crate::RbsParser::parse(Rule::attribute_member, source)
 }
 
+pub fn parse_include_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    crate::RbsParser::parse(Rule::include_member, source)
+}
+
 // NOTE: FYI: https://github.com/ruby/rbs/blob/master/test/rbs/parser_test.rb
 #[cfg(test)]
 mod tests {
@@ -176,5 +180,23 @@ mod tests {
 
         let text = "attr_accessor people (): Array[Person]";
         let _ = parse_attribute_member(text).unwrap();
+    }
+
+    #[test]
+    fn include_member_test() {
+        let text = "include FooBar";
+        let _ = parse_include_member(text).unwrap();
+
+        let text = "include X[A]";
+        let _ = parse_include_member(text).unwrap();
+
+        let text = "include Array[A]";
+        let _ = parse_include_member(text).unwrap();
+
+        let text = "include _ToS";
+        let _ = parse_include_member(text).unwrap();
+
+        let text = "include _Each[T]";
+        let _ = parse_include_member(text).unwrap();
     }
 }
