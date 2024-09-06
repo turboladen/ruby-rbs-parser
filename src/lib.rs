@@ -37,6 +37,10 @@ pub fn parse_alias_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     crate::RbsParser::parse(Rule::alias_member, source)
 }
 
+pub fn parse_attribute_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    crate::RbsParser::parse(Rule::attribute_member, source)
+}
+
 // NOTE: FYI: https://github.com/ruby/rbs/blob/master/test/rbs/parser_test.rb
 #[cfg(test)]
 mod tests {
@@ -157,5 +161,20 @@ mod tests {
 
         let text = "alias    self   .   hello    self   .   world";
         let _ = parse_alias_member(text).unwrap();
+    }
+
+    #[test]
+    fn attribute_member_test() {
+        let text = "attr_reader string: String";
+        let _ = parse_attribute_member(text).unwrap();
+
+        let text = "attr_writer name (): Integer";
+        let _ = parse_attribute_member(text).unwrap();
+
+        let text = "attr_writer name (@raw_name): String";
+        let _ = parse_attribute_member(text).unwrap();
+
+        let text = "attr_accessor people (): Array[Person]";
+        let _ = parse_attribute_member(text).unwrap();
     }
 }
