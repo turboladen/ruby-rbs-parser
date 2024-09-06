@@ -45,6 +45,10 @@ pub fn parse_include_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     crate::RbsParser::parse(Rule::include_member, source)
 }
 
+pub fn parse_extend_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    crate::RbsParser::parse(Rule::extend_member, source)
+}
+
 // NOTE: FYI: https://github.com/ruby/rbs/blob/master/test/rbs/parser_test.rb
 #[cfg(test)]
 mod tests {
@@ -198,5 +202,23 @@ mod tests {
 
         let text = "include _Each[T]";
         let _ = parse_include_member(text).unwrap();
+    }
+
+    #[test]
+    fn extend_member_test() {
+        let text = "extend FooBar";
+        let _ = parse_extend_member(text).unwrap();
+
+        let text = "extend X[A]";
+        let _ = parse_extend_member(text).unwrap();
+
+        let text = "extend Array[A]";
+        let _ = parse_extend_member(text).unwrap();
+
+        let text = "extend _ToS";
+        let _ = parse_extend_member(text).unwrap();
+
+        let text = "extend _Each[T]";
+        let _ = parse_extend_member(text).unwrap();
     }
 }
