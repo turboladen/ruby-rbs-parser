@@ -29,8 +29,8 @@ rtype = {
   // | proc
 }
   record_name = { var_name }
-  module_name_inner = _{ namespace* ~ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
   class_name = ${ module_name_inner }
+    module_name_inner = _{ namespace* ~ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
   module_name = ${ module_name_inner }
   interface_name = ${ namespace* ~ "_" ~ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
   alias_name = ${ namespace* ~ LOWERCASE_LETTER ~ ASCII_ALPHANUMERIC* }

@@ -1,5 +1,6 @@
 pub mod declarations;
 pub mod members;
+pub mod types;
 
 #[derive(pest_derive::Parser)]
 #[grammar = "rbs.pest"]
