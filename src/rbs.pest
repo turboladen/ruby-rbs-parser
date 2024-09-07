@@ -32,13 +32,13 @@ rtype = {
   class_name = ${ module_name_inner }
     module_name_inner = _{ namespace* ~ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
   module_name = ${ module_name_inner }
-  interface_name = ${ namespace* ~ "_" ~ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
-  alias_name = ${ namespace* ~ LOWERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
-  type_variable = ${ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
+  interface_name = ${ namespace* ~ "_" ~ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
+  alias_name = ${ namespace* ~ LOWERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
+  type_variable = ${ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
 
 // Spec allows for empty; use `namespace*` at use-site.
 namespace = ${ "::" |  (namespace_name ~ "::")+ }
-  namespace_name = ${ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
+  namespace_name = ${ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
 
 // Spec allows for empty; use `type_arguments?` at use-site.
 type_arguments = { "[" ~ rtype ~ ("," ~ rtype)* ~ "]" }
@@ -111,7 +111,7 @@ member = {
     instance_method = { visibility? ~ "def" ~ method_name ~ ":" ~ method_types }
     singleton_method = { visibility? ~ "def" ~ "self" ~ "." ~ method_name ~ ":" ~ method_types }
     singleton_and_instance_method = { visibility? ~ "def" ~ "self" ~ "?" ~ "." ~ method_name ~ ":" ~ method_types }
-    method_name = ${ CASED_LETTER ~ ASCII_ALPHANUMERIC* }
+    method_name = ${ CASED_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
     method_types = {
       method_type_parameters? ~ method_type 
      | method_type_parameters? ~ method_type ~ "|" ~ method_types
@@ -178,7 +178,7 @@ decl = {
     }
   const_decl = { const_name ~ ":" ~ rtype }
     const_name = { const_name_inner+ }
-      const_name_inner = _{ namespace? ~ UPPERCASE_LETTER ~ ASCII_ALPHANUMERIC* }
+      const_name_inner = _{ namespace? ~ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
   // Spec allows for empty; use `module_type_parameters?` at use-site.
   module_type_parameters = { "[" ~ module_type_parameter ~ ("," ~ module_type_parameter)* ~ "]" }
 

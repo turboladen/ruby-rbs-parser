@@ -1,3 +1,12 @@
+#[cfg(test)]
+macro_rules! test_parse {
+    ($input:expr, $fn:ident, $rule:ident) => {
+        let mut pairs = $fn($input).unwrap();
+        let pair = pairs.next().unwrap();
+        assert_eq!(pair.as_rule(), Rule::$rule);
+    };
+}
+
 pub mod declarations;
 pub mod members;
 pub mod types;
