@@ -18,12 +18,16 @@ pub fn parse_singleton_class_name(source: &str) -> Result<Pairs<Rule>, Error<Rul
     RbsParser::parse(Rule::singleton_class_name, source)
 }
 
+pub fn parse_string_literal(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::string_literal, source)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn class_name_test() {
+    fn parse_class_name_test() {
         assert!(parse_class_name("x").is_err());
 
         test_parse!("X", parse_class_name, class_name);
@@ -43,7 +47,7 @@ mod tests {
     }
 
     #[test]
-    fn interface_name_test() {
+    fn parse_interface_name_test() {
         assert!(parse_interface_name("X").is_err());
 
         test_parse!("_H", parse_interface_name, interface_name);
@@ -58,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn alias_name_test() {
+    fn parse_alias_name_test() {
         assert!(parse_alias_name("X").is_err());
         assert!(parse_alias_name("::X").is_err());
         assert!(parse_alias_name("::X::Y").is_err());
@@ -75,7 +79,7 @@ mod tests {
     }
 
     #[test]
-    fn singleton_class_name_test() {
+    fn parse_singleton_class_name_test() {
         test_parse!(
             "singleton(Foo)",
             parse_singleton_class_name,
@@ -101,5 +105,22 @@ mod tests {
         // NOTE: Spec says:
         // Class singleton type cannot be parametrized.
         test_parse_err!("singleton(Foo[A])", parse_singleton_class_name);
+    }
+
+    #[test]
+    fn parse_string_literal_test() {
+        test_parse!(r#"''"#, parse_string_literal, string_literal);
+        test_parse!(r#"'hi'"#, parse_string_literal, string_literal);
+        test_parse!(r#"'foo \a bar'"#, parse_string_literal, string_literal);
+        test_parse!(r#"'foo \b bar'"#, parse_string_literal, string_literal);
+        test_parse!(r#"'foo \t bar'"#, parse_string_literal, string_literal);
+        test_parse!(r#"'🌮  \"  '"#, parse_string_literal, string_literal);
+
+        test_parse!(r#""""#, parse_string_literal, string_literal);
+        test_parse!(r#""hi""#, parse_string_literal, string_literal);
+        test_parse!(r#""foo \a bar""#, parse_string_literal, string_literal);
+        test_parse!(r#""foo \b bar""#, parse_string_literal, string_literal);
+        test_parse!(r#""foo \t bar""#, parse_string_literal, string_literal);
+        test_parse!(r#""🌮  \"  ""#, parse_string_literal, string_literal);
     }
 }

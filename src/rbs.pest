@@ -12,7 +12,7 @@ rtype = {
   // Alias type
   | alias_name ~ type_arguments?
   | singleton_class_name
-  // | literal
+  | literal
   // | rtype | rtype
   // | rtype & rtype
   // | rtype ?
@@ -43,6 +43,42 @@ namespace = ${ "::" |  (namespace_name ~ "::")+ }
 
 // Spec allows for empty; use `type_arguments?` at use-site.
 type_arguments = { "[" ~ rtype ~ ("," ~ rtype)* ~ "]" }
+
+// NOTE: https://docs.ruby-lang.org/en/master/syntax/literals_rdoc.html
+literal = ${
+  string_literal
+  | symbol_literal
+  | integer_literal
+  | "true"
+  | "false"
+}
+  // NOTE: Needed some Pest help from
+  // https://github.com/pest-parser/pest/blob/da3fcfeb446bcfe3d366b42d2c14b7d9db025672/meta/src/grammar.pest#L173
+  string_literal = ${ double_quoted_string_literal | single_quoted_string_literal }
+    double_quoted_string_literal = ${ double_quote ~ double_quote_inner_str ~ double_quote }
+      double_quote = { "\"" }
+      double_quote_inner_str = @{ (!double_quote ~ ANY)* }
+    single_quoted_string_literal = { single_quote ~ single_quote_inner_str ~ single_quote }
+      single_quote = { "'" }
+      single_quote_inner_str = @{ (!single_quote ~ ANY)* }
+
+  symbol_literal = ${
+    ":" ~ LETTER ~ (LETTER | NUMBER)*
+    | ":" ~ double_quoted_string_literal
+    | ":" ~ single_quoted_string_literal
+  }
+
+  integer_literal = ${
+    decimal_integer_literal
+    | "0" ~ ("d" | "D") ~ decimal_integer_literal
+    | "0" ~ ("x" | "X") ~ hexadecimal_integer_literal
+    | "0" ~ "o"? ~ octal_integer_literal
+    | "0" ~ ("b" | "B") ~ binary_integer_literal
+  }
+    decimal_integer_literal = @{ ASCII_DIGIT ~ (ASCII_DIGIT | "_")* }
+    hexadecimal_integer_literal = @{ ASCII_HEX_DIGIT ~ (ASCII_HEX_DIGIT | "_")* }
+    octal_integer_literal = @{ ASCII_OCT_DIGIT ~ (ASCII_OCT_DIGIT | "_")* }
+    binary_integer_literal = @{ ASCII_BIN_DIGIT ~ (ASCII_BIN_DIGIT | "_")* }
 
 // ╭─────────────────────────────╮
 // │ Method Types and Proc Types │

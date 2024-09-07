@@ -1,5 +1,14 @@
 #[cfg(test)]
 macro_rules! test_parse {
+    ($input:expr, $fn:ident, $rule:ident, gimme) => {{
+        let mut pairs = $fn($input).unwrap();
+        let return_thing = pairs.clone();
+        let pair = pairs.next().unwrap();
+        assert_eq!(pair.as_rule(), Rule::$rule);
+
+        return_thing
+    }};
+
     ($input:expr, $fn:ident, $rule:ident) => {
         let mut pairs = $fn($input).unwrap();
         let pair = pairs.next().unwrap();
