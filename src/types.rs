@@ -10,12 +10,18 @@ pub fn parse_interface_name(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     RbsParser::parse(Rule::interface_name, source)
 }
 
+pub fn parse_alias_name(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::alias_name, source)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn class_name_test() {
+        assert!(parse_class_name("x").is_err());
+
         test_parse!("X", parse_class_name, class_name);
         test_parse!("X[T]", parse_class_name, class_name);
         test_parse!("Foo", parse_class_name, class_name);
@@ -34,12 +40,33 @@ mod tests {
 
     #[test]
     fn interface_name_test() {
-        let text = "X";
-        assert!(parse_interface_name(text).is_err());
+        assert!(parse_interface_name("X").is_err());
 
         test_parse!("_H", parse_interface_name, interface_name);
         test_parse!("_Hashing", parse_interface_name, interface_name);
         test_parse!("_Each[A, B]", parse_interface_name, interface_name);
         test_parse!("_Each_Iter[A, B]", parse_interface_name, interface_name);
+        test_parse!(
+            "::Foo::Bar::_Each_Iter[A, B]",
+            parse_interface_name,
+            interface_name
+        );
+    }
+
+    #[test]
+    fn alias_name_test() {
+        assert!(parse_alias_name("X").is_err());
+        assert!(parse_alias_name("::X").is_err());
+        assert!(parse_alias_name("::X::Y").is_err());
+        // let x = parse_alias_name("::abcd::efgh").unwrap();
+        // dbg!(x);
+        // assert!(parse_alias_name("::abcd::efgh").is_err());
+
+        test_parse!("a", parse_alias_name, alias_name);
+        test_parse!("a_b_c", parse_alias_name, alias_name);
+        test_parse!("aBcD", parse_alias_name, alias_name);
+        test_parse!("::aBcD", parse_alias_name, alias_name);
+        test_parse!("::Foo::bar", parse_alias_name, alias_name);
+        test_parse!("Foo::bar", parse_alias_name, alias_name);
     }
 }
