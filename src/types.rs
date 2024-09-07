@@ -14,6 +14,10 @@ pub fn parse_alias_name(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     RbsParser::parse(Rule::alias_name, source)
 }
 
+pub fn parse_singleton_class_name(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::singleton_class_name, source)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -68,5 +72,34 @@ mod tests {
         test_parse!("::aBcD", parse_alias_name, alias_name);
         test_parse!("::Foo::bar", parse_alias_name, alias_name);
         test_parse!("Foo::bar", parse_alias_name, alias_name);
+    }
+
+    #[test]
+    fn singleton_class_name_test() {
+        test_parse!(
+            "singleton(Foo)",
+            parse_singleton_class_name,
+            singleton_class_name
+        );
+        test_parse!(
+            "singleton ( Foo )",
+            parse_singleton_class_name,
+            singleton_class_name
+        );
+        test_parse!(
+            "singleton(::Foo)",
+            parse_singleton_class_name,
+            singleton_class_name
+        );
+
+        test_parse!(
+            "singleton(Foo::Bar)",
+            parse_singleton_class_name,
+            singleton_class_name
+        );
+
+        // NOTE: Spec says:
+        // Class singleton type cannot be parametrized.
+        test_parse_err!("singleton(Foo[A])", parse_singleton_class_name);
     }
 }

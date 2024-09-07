@@ -6,6 +6,12 @@ macro_rules! test_parse {
         assert_eq!(pair.as_rule(), Rule::$rule);
     };
 }
+#[cfg(test)]
+macro_rules! test_parse_err {
+    ($input:expr, $fn:ident) => {
+        assert!($fn($input).is_err());
+    };
+}
 
 pub mod declarations;
 pub mod members;

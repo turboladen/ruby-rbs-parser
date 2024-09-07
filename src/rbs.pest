@@ -11,7 +11,7 @@ rtype = {
   | interface_name ~ type_arguments?
   // Alias type
   | alias_name ~ type_arguments?
-  | "singleton" ~ "(" ~ class_name ~ ")"
+  | singleton_class_name
   // | literal
   // | rtype | rtype
   // | rtype & rtype
@@ -34,6 +34,7 @@ rtype = {
   module_name = ${ module_name_inner }
   interface_name = ${ namespace* ~ "_" ~ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
   alias_name = ${ namespace* ~ LOWERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
+  singleton_class_name = { "singleton" ~ "(" ~ class_name ~ ")" }
   type_variable = ${ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
 
 // Spec allows for empty; use `namespace*` at use-site.
