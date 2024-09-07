@@ -22,6 +22,10 @@ pub fn parse_string_literal(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     RbsParser::parse(Rule::string_literal, source)
 }
 
+pub fn parse_symbol_literal(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::symbol_literal, source)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -122,5 +126,26 @@ mod tests {
         test_parse!(r#""foo \b bar""#, parse_string_literal, string_literal);
         test_parse!(r#""foo \t bar""#, parse_string_literal, string_literal);
         test_parse!(r#""🌮  \"  ""#, parse_string_literal, string_literal);
+    }
+
+    #[test]
+    fn parse_symbol_literal_test() {
+        test_parse!(r#":hi"#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":foo_bar"#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":🌮"#, parse_symbol_literal, symbol_literal);
+
+        test_parse!(r#":''"#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":'hi'"#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":'foo \a bar'"#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":'foo \b bar'"#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":'foo \t bar'"#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":'🌮  \"  '"#, parse_symbol_literal, symbol_literal);
+
+        test_parse!(r#":"""#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":"hi""#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":"foo \a bar""#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":"foo \b bar""#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":"foo \t bar""#, parse_symbol_literal, symbol_literal);
+        test_parse!(r#":"🌮  \"  ""#, parse_symbol_literal, symbol_literal);
     }
 }

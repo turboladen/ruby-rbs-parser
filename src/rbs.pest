@@ -63,7 +63,7 @@ literal = ${
       single_quote_inner_str = @{ (!single_quote ~ ANY)* }
 
   symbol_literal = ${
-    ":" ~ LETTER ~ (LETTER | NUMBER)*
+    ":" ~ !":"+
     | ":" ~ double_quoted_string_literal
     | ":" ~ single_quoted_string_literal
   }
