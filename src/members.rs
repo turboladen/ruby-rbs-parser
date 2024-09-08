@@ -2,24 +2,24 @@ use pest::{error::Error, iterators::Pairs, Parser as _};
 
 use crate::{RbsParser, Rule};
 
-pub fn parse_method_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
-    RbsParser::parse(Rule::method_member, source)
+pub fn parse_method(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::MemberMethod, source)
 }
 
-pub fn parse_alias_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
-    RbsParser::parse(Rule::alias_member, source)
+pub fn parse_alias(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::MemberAlias, source)
 }
 
-pub fn parse_attribute_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
-    RbsParser::parse(Rule::attribute_member, source)
+pub fn parse_attribute(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::MemberAttribute, source)
 }
 
-pub fn parse_include_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
-    RbsParser::parse(Rule::include_member, source)
+pub fn parse_include(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::MemberInclude, source)
 }
 
-pub fn parse_extend_member(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
-    RbsParser::parse(Rule::extend_member, source)
+pub fn parse_extend(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::MemberExtend, source)
 }
 
 // NOTE: FYI: https://github.com/ruby/rbs/blob/master/test/rbs/parser_test.rb
@@ -28,95 +28,77 @@ mod tests {
     use super::*;
 
     #[test]
-    fn method_member_test() {
-        let text = "def foo: () -> A";
-        let _ = parse_method_member(text).unwrap();
+    fn parse_method_test() {
+        test_parse!("def foo: () -> A", parse_method, MemberMethod);
+        test_parse!(
+            "def     foo    : ()     ->     A",
+            parse_method,
+            MemberMethod
+        );
+        test_parse!("def self.bar: () -> A", parse_method, MemberMethod);
+        test_parse!("def      self.   bar: () -> A", parse_method, MemberMethod);
+        test_parse!(
+            "def      self   .bar   : () -> A",
+            parse_method,
+            MemberMethod
+        );
+        test_parse!("def self?.baz: () -> A", parse_method, MemberMethod);
+        test_parse!("def self ? . baz :()->A", parse_method, MemberMethod);
+        test_parse!("def self?.baz:()->A", parse_method, MemberMethod);
 
-        let text = "def     foo    : ()     ->     A";
-        let _ = parse_method_member(text).unwrap();
-
-        let text = "def self.bar: () -> A";
-        let _ = parse_method_member(text).unwrap();
-
-        let text = "def      self.   bar: () -> A";
-        let _ = parse_method_member(text).unwrap();
-
-        let text = "def      self   .bar   : () -> A";
-        let _ = parse_method_member(text).unwrap();
-
-        let text = "def      self .: () -> A";
-        assert!(parse_method_member(text).is_err());
-
-        let text = "def self?.baz: () -> A";
-        let _ = parse_method_member(text).unwrap();
-
-        let text = "def self ? . baz :()->A";
-        let _ = parse_method_member(text).unwrap();
-
-        let text = "def self?.baz:()->A";
-        let _ = parse_method_member(text).unwrap();
+        test_parse_err!("def      self .: () -> A", parse_method);
     }
 
     #[test]
-    fn alias_member_test() {
-        let text = "alias hello world";
-        let _ = parse_alias_member(text).unwrap();
-
-        let text = "alias self.hello self.world";
-        let _ = parse_alias_member(text).unwrap();
-
-        let text = "alias    self   .   hello    self   .   world";
-        let _ = parse_alias_member(text).unwrap();
+    fn parse_alias_test() {
+        test_parse!("alias hello world", parse_alias, MemberAlias);
+        test_parse!("alias self.hello self.world", parse_alias, MemberAlias);
+        test_parse!(
+            "alias    self   .   hello    self   .   world",
+            parse_alias,
+            MemberAlias
+        );
     }
 
     #[test]
-    fn attribute_member_test() {
-        let text = "attr_reader string: String";
-        let _ = parse_attribute_member(text).unwrap();
-
-        let text = "attr_writer name (): Integer";
-        let _ = parse_attribute_member(text).unwrap();
-
-        let text = "attr_writer name (@raw_name): String";
-        let _ = parse_attribute_member(text).unwrap();
-
-        let text = "attr_accessor people (): Array[Person]";
-        let _ = parse_attribute_member(text).unwrap();
+    fn parse_attribute_test() {
+        test_parse!(
+            "attr_reader string: String",
+            parse_attribute,
+            MemberAttribute
+        );
+        test_parse!(
+            "attr_writer name (): Integer",
+            parse_attribute,
+            MemberAttribute
+        );
+        test_parse!(
+            "attr_writer name (@raw_name): String",
+            parse_attribute,
+            MemberAttribute
+        );
+        test_parse!(
+            "attr_accessor people (): Array[Person]",
+            parse_attribute,
+            MemberAttribute
+        );
     }
 
     #[test]
-    fn include_member_test() {
-        let text = "include FooBar";
-        let _ = parse_include_member(text).unwrap();
-
-        let text = "include X[A]";
-        let _ = parse_include_member(text).unwrap();
-
-        let text = "include Array[A]";
-        let _ = parse_include_member(text).unwrap();
-
-        let text = "include _ToS";
-        let _ = parse_include_member(text).unwrap();
-
-        let text = "include _Each[T]";
-        let _ = parse_include_member(text).unwrap();
+    fn parse_include_test() {
+        test_parse!("include FooBar", parse_include, MemberInclude);
+        test_parse!("include X[A]", parse_include, MemberInclude);
+        test_parse!("include Array[A]", parse_include, MemberInclude);
+        test_parse!("include _ToS", parse_include, MemberInclude);
+        test_parse!("include _Each[T]", parse_include, MemberInclude);
     }
 
     #[test]
-    fn extend_member_test() {
-        let text = "extend FooBar";
-        let _ = parse_extend_member(text).unwrap();
-
-        let text = "extend X[A]";
-        let _ = parse_extend_member(text).unwrap();
-
-        let text = "extend Array[A]";
-        let _ = parse_extend_member(text).unwrap();
-
-        let text = "extend _ToS";
-        let _ = parse_extend_member(text).unwrap();
-
-        let text = "extend _Each[T]";
-        let _ = parse_extend_member(text).unwrap();
+    fn parse_extend_test() {
+        test_parse!("extend FooBar", parse_extend, MemberExtend);
+        test_parse!("extend X[A]", parse_extend, MemberExtend);
+        test_parse!("extend Array[A]", parse_extend, MemberExtend);
+        test_parse!("extend _ToS", parse_extend, MemberExtend);
+        test_parse!("extend _Each[T]", parse_extend, MemberExtend);
     }
 }

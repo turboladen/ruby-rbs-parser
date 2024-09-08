@@ -1,17 +1,35 @@
+// ╭──────────────╮
+// │ Pest helpers │
+// ╰──────────────╯
 WHITESPACE = _{ " " | NEWLINE | "\t" }
-COMMENT = _{ "#" ~ (!"#" ~ ANY)* ~ NEWLINE }
+COMMENT = { "#" ~ (!"#" ~ ANY)* ~ NEWLINE }
+
+//╭─────────────────────────────────────────╮
+//│ Top-level (public, all-consuming) rules │
+//╰─────────────────────────────────────────╯
+TypeClassInstanceName = { SOI ~ class_instance_name_type ~ EOI }
+TypeAliasName = ${ SOI ~ alias_name_type ~ EOI }
+TypeSingletonClassName = ${ SOI ~ class_singleton_name_type ~ EOI }
+TypeInterfaceName = { SOI ~ interface_name_type ~ EOI }
+
+LiteralString = ${ SOI ~ string_literal ~ EOI }
+LiteralSymbol = ${ SOI ~ symbol_literal ~ EOI }
+LiteralInteger = ${ SOI ~ integer_literal ~ EOI }
+
+MemberMethod = { SOI ~ method_member ~ EOI }
+MemberAlias = { SOI ~ alias_member ~ EOI }
+MemberAttribute = { SOI ~ attribute_member ~ EOI }
+MemberInclude = { SOI ~ include_member ~ EOI }
+MemberExtend = { SOI ~ extend_member ~ EOI }
 
 // ╭───────╮
 // │ Types │
 // ╰───────╯
 rtype = {
-  // Class instance type
-  class_name ~ type_arguments?
-  // Interface type
-  | interface_name ~ type_arguments?
-  // Alias type
-  | alias_name ~ type_arguments?
-  | singleton_class_name
+  class_instance_name_type
+  | interface_name_type
+  | alias_name_type
+  | class_singleton_name_type
   | literal
   // | rtype | rtype
   // | rtype & rtype
@@ -29,12 +47,15 @@ rtype = {
   // | proc
 }
   record_name = { var_name }
-  class_name = ${ module_name_inner }
-    module_name_inner = _{ namespace* ~ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
+  class_instance_name_type = { class_name ~ type_arguments? }
+    class_name = ${ module_name_inner }
+      module_name_inner = _{ namespace* ~ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
   module_name = ${ module_name_inner }
-  interface_name = ${ namespace* ~ "_" ~ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
-  alias_name = ${ namespace* ~ LOWERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
-  singleton_class_name = { "singleton" ~ "(" ~ class_name ~ ")" }
+  interface_name_type = { interface_name ~ type_arguments? }
+    interface_name = ${ namespace* ~ "_" ~ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
+  alias_name_type = { alias_name ~ type_arguments? }
+    alias_name = ${ namespace* ~ LOWERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
+  class_singleton_name_type = !{ "singleton" ~ "(" ~ class_name ~ ")" }
   type_variable = ${ UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
 
 // Spec allows for empty; use `namespace*` at use-site.
@@ -63,22 +84,22 @@ literal = ${
       single_quote_inner_str = @{ (!single_quote ~ ANY)* }
 
   symbol_literal = ${
-    ":" ~ !":"+
+    ":" ~ (LETTER | EMOJI | NUMBER)+ ~ (LETTER | EMOJI | NUMBER | "_")*
     | ":" ~ double_quoted_string_literal
     | ":" ~ single_quoted_string_literal
   }
 
   integer_literal = ${
-    decimal_integer_literal
-    | "0" ~ ("d" | "D") ~ decimal_integer_literal
+    "0" ~ ("d" | "D") ~ decimal_integer_literal
     | "0" ~ ("x" | "X") ~ hexadecimal_integer_literal
     | "0" ~ "o"? ~ octal_integer_literal
     | "0" ~ ("b" | "B") ~ binary_integer_literal
+    | decimal_integer_literal
   }
-    decimal_integer_literal = @{ ASCII_DIGIT ~ (ASCII_DIGIT | "_")* }
-    hexadecimal_integer_literal = @{ ASCII_HEX_DIGIT ~ (ASCII_HEX_DIGIT | "_")* }
-    octal_integer_literal = @{ ASCII_OCT_DIGIT ~ (ASCII_OCT_DIGIT | "_")* }
-    binary_integer_literal = @{ ASCII_BIN_DIGIT ~ (ASCII_BIN_DIGIT | "_")* }
+    decimal_integer_literal = ${ ASCII_DIGIT ~ (ASCII_DIGIT | "_")* }
+    hexadecimal_integer_literal = ${ ASCII_HEX_DIGIT ~ (ASCII_HEX_DIGIT | "_")* }
+    octal_integer_literal = ${ ASCII_OCT_DIGIT ~ (ASCII_OCT_DIGIT | "_")* }
+    binary_integer_literal = ${ ASCII_BIN_DIGIT ~ (ASCII_BIN_DIGIT | "_")* }
 
 // ╭─────────────────────────────╮
 // │ Method Types and Proc Types │
