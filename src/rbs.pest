@@ -39,6 +39,7 @@ rtype = {
   | "instance"
   | "class"
   | "bool"
+  | "boolish"
   | "untyped"
   | "nil"
   | "top"
