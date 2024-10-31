@@ -244,7 +244,7 @@ decl = {
 // │ Generics  │
 // ╰───────────╯
 module_type_parameter = {
-  generics_unchecked? ~ generics_variance? ~ type_variable ~ generics_bound?
+  generics_unchecked? ~ generics_variance? ~ type_variable ~ generics_bound? ~ default_type?
 }
   // Spec allows for empty; use `generics_bound?` at use-site.
   generics_bound = { "<" ~ bound_type }
@@ -253,6 +253,7 @@ module_type_parameter = {
       | interface_name ~ type_arguments?
       | "singleton" ~ "(" ~ class_name ~ ")"
     }
+  default_type = { "=" ~ rtype }
   // Spec allows for empty; use `generics_variance?` at use-site.
   generics_variance = { "out" | "in" }
   // Spec allows for empty; use `generics_unchecked?` at use-site.

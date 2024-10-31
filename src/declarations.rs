@@ -27,7 +27,13 @@ mod tests {
         let text = "class Foo[T]\nend";
         let _ = parse_class_decl(text).unwrap();
 
+        let text = "class Foo[T = untyped]\nend";
+        let _ = parse_class_decl(text).unwrap();
+
         let text = "class Foo[T, U]\nend";
+        let _ = parse_class_decl(text).unwrap();
+
+        let text = "class Foo[T, U = untyped]\nend";
         let _ = parse_class_decl(text).unwrap();
 
         let text = "class Foo[out T]\nend";
@@ -60,7 +66,13 @@ mod tests {
         let text = "module Foo[T]\nend";
         let _ = parse_module_decl(text).unwrap();
 
+        let text = "module Foo[T = untyped]\nend";
+        let _ = parse_module_decl(text).unwrap();
+
         let text = "module Foo[T, U]\nend";
+        let _ = parse_module_decl(text).unwrap();
+
+        let text = "module Foo[T, U = untyped]\nend";
         let _ = parse_module_decl(text).unwrap();
 
         let text = "module Foo[out T]\nend";
