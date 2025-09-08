@@ -31,6 +31,7 @@ macro_rules! test_parse_err {
 
 pub mod declarations;
 pub mod members;
+pub mod pratt;
 pub mod types;
 
 #[derive(pest_derive::Parser)]

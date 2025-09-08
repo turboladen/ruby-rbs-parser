@@ -18,6 +18,10 @@ pub fn parse_singleton_class_name(source: &str) -> Result<Pairs<Rule>, Error<Rul
     RbsParser::parse(Rule::TypeSingletonClassName, source)
 }
 
+pub fn parse_record(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    RbsParser::parse(Rule::TypeRecord, source)
+}
+
 pub fn parse_literal(source: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     RbsParser::parse(Rule::literal, source)
 }
@@ -98,6 +102,16 @@ mod tests {
         test_parse!("::aBcD", parse_alias_name, TypeAliasName);
         test_parse!("::Foo::bar", parse_alias_name, TypeAliasName);
         test_parse!("Foo::bar", parse_alias_name, TypeAliasName);
+    }
+
+    #[test]
+    fn parse_record_test() {
+        test_parse!("{ id: Integer }", parse_alias_name, TypeAliasName, gimme);
+        test_parse!(
+            "{ id: Integer, name: String }",
+            parse_alias_name,
+            TypeAliasName
+        );
     }
 
     #[test]
